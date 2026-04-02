@@ -18,7 +18,7 @@ MODEL_NAME = os.getenv("MODEL_NAME", "gpt-3.5-turbo")
 API_KEY = os.getenv("OPENAI_API_KEY")
 
 # ==========================================
-# 2. FASTAPI ENDPOINTS (STRICT TYPING FOR GRADER)
+# 2. FASTAPI ENDPOINTS (FOR THE GRADER)
 # ==========================================
 @app.get("/")
 async def health_check():
@@ -28,25 +28,24 @@ async def health_check():
 async def reset():
     """Handles the Reset POST check from the grader."""
     obs = env.reset()
-    # Returns the observation as a dictionary
     return obs.model_dump()
 
 @app.post("/step")
 async def step(action: CSVAction):
-    """Handles the Step POST actions with strict OpenEnv types."""
+    """Handles the Step POST actions with strict typing for validation."""
     obs, reward, done, info = env.step(action)
     return {
-        "observation": obs.model_dump(),  # Must be a dictionary
-        "reward": float(reward),          # STRICT FLOAT
-        "done": bool(done),               # STRICT BOOLEAN
-        "info": info if info else {}      # Must be a dictionary
+        "observation": obs.model_dump(),
+        "reward": float(reward),          # Strict Float
+        "done": bool(done),               # Strict Boolean
+        "info": info if info else {}      # Strict Dictionary
     }
 
 # ==========================================
-# 3. AI AGENT LOGIC (YOUR BASELINE)
+# 3. AI AGENT LOGIC (THE BASELINE)
 # ==========================================
 def run_baseline(task_level="easy"):
-    # Small delay to allow the server to initialize
+    # Small delay to allow the server to fully initialize
     time.sleep(5)
     
     if not API_KEY:
@@ -54,7 +53,6 @@ def run_baseline(task_level="easy"):
         return
 
     client = OpenAI(api_key=API_KEY, base_url=API_BASE_URL)
-    # Separate environment instance for the AI agent
     agent_env = CSVCleanerEnv(task_name=task_level)
     obs = agent_env.reset()
     
@@ -91,14 +89,21 @@ def run_baseline(task_level="easy"):
     print(f"[END] success={'true' if sum(float(r) for r in rewards_history) > 0 else 'false'} steps={step_count} rewards={','.join(rewards_history)}")
 
 # ==========================================
-# 4. EXECUTION
+# 4. ENTRY POINT (REQUIRED FOR MULTI-MODE)
 # ==========================================
-if __name__ == "__main__":
-    # 1. Run the AI agent in a background thread
+def main():
+    """
+    The main entry point called by 'server' command in pyproject.toml
+    """
+    # Start the AI baseline in a background thread
     agent_thread = threading.Thread(target=run_baseline, args=("easy",))
     agent_thread.daemon = True
     agent_thread.start()
 
-    # 2. Run the FastAPI Server on Port 7860
+    # Run the FastAPI Server
     port = int(os.environ.get("PORT", 7860))
+    print(f"Starting server on port {port}...")
     uvicorn.run(app, host="0.0.0.0", port=port)
+
+if __name__ == "__main__":
+    main()
