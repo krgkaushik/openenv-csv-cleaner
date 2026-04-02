@@ -1,0 +1,21 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "openenv-csv-cleaner"
+version = "1.0.0"
+description = "An AI-powered data cleaning environment for the OpenEnv Hackathon"
+readme = "README.md"
+requires-python = ">=3.9"
+dependencies = [
+    "fastapi",
+    "uvicorn",
+    "openai",
+    "pandas",
+    "pydantic",
+    "openenv-core"
+]
+
+[project.scripts]
+openenv-agent = "inference:run_baseline"
