@@ -1,0 +1,7 @@
+[[package]]
+name = "openenv-csv-cleaner"
+version = "1.0.0"
+source = { editable = "." }
+
+[metadata]
+requires-python = ">=3.9"
