@@ -11,4 +11,4 @@ COPY . .
 EXPOSE 7860
 
 # Run the server version of your script
-CMD ["python", "inference.py"]
+CMD ["python", "server/app.py"]
