@@ -2,3 +2,5 @@ openenv-core
 pandas
 openai
 pydantic
+fastapi
+uvicorn
