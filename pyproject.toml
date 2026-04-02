@@ -5,9 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "openenv-csv-cleaner"
 version = "1.0.0"
-description = "An AI-powered data cleaning environment for the OpenEnv Hackathon"
-readme = "README.md"
-requires-python = ">=3.9"
+description = "AI data cleaning environment"
 dependencies = [
     "fastapi",
     "uvicorn",
@@ -18,4 +16,5 @@ dependencies = [
 ]
 
 [project.scripts]
-openenv-agent = "inference:run_baseline"
+# This satisfies the "Missing [project.scripts] server entry point" error
+server = "server.app:main"
