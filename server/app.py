@@ -5,7 +5,9 @@ import uvicorn
 import threading
 from fastapi import FastAPI
 from openai import OpenAI
-from env import CSVCleanerEnv, CSVAction
+
+# Updated import to work from the root directory
+from server.env import CSVCleanerEnv, CSVAction
 
 # ==========================================
 # 1. SETUP & CONFIGURATION
@@ -36,17 +38,16 @@ async def step(action: CSVAction):
     obs, reward, done, info = env.step(action)
     return {
         "observation": obs.model_dump(),
-        "reward": float(reward),          # Strict Float
-        "done": bool(done),               # Strict Boolean
-        "info": info if info else {}      # Strict Dictionary
+        "reward": float(reward),
+        "done": bool(done),
+        "info": info if info else {}
     }
 
 # ==========================================
 # 3. AI AGENT LOGIC (THE BASELINE)
 # ==========================================
 def run_baseline(task_level="easy"):
-    # Small delay to allow the server to fully initialize
-    time.sleep(5)
+    time.sleep(5) # Delay to allow server to initialize
     
     if not API_KEY:
         print("ERROR: OPENAI_API_KEY is missing in HF Secrets!")
@@ -59,7 +60,7 @@ def run_baseline(task_level="easy"):
     print(f"[START] task=csv-cleaning-{task_level} env=openenv-csv-cleaner model={MODEL_NAME}")
     
     done, step_count, rewards_history = False, 0, []
-    system_prompt = "You are an AI data cleaning agent. Respond ONLY with raw JSON."
+    system_prompt = "You are an AI data cleaning agent. Respond ONLY with raw JSON matching the CSVAction schema."
 
     while not done and step_count < 10:
         step_count += 1
@@ -89,20 +90,16 @@ def run_baseline(task_level="easy"):
     print(f"[END] success={'true' if sum(float(r) for r in rewards_history) > 0 else 'false'} steps={step_count} rewards={','.join(rewards_history)}")
 
 # ==========================================
-# 4. ENTRY POINT (REQUIRED FOR MULTI-MODE)
+# 4. ENTRY POINT
 # ==========================================
 def main():
-    """
-    The main entry point called by 'server' command in pyproject.toml
-    """
-    # Start the AI baseline in a background thread
     agent_thread = threading.Thread(target=run_baseline, args=("easy",))
     agent_thread.daemon = True
     agent_thread.start()
 
-    # Run the FastAPI Server
     port = int(os.environ.get("PORT", 7860))
     print(f"Starting server on port {port}...")
+    # Running uvicorn directly from the script
     uvicorn.run(app, host="0.0.0.0", port=port)
 
 if __name__ == "__main__":
