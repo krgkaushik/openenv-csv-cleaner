@@ -13,4 +13,4 @@ EXPOSE 7860
 ENV PORT=7860
 
 # Run the Python script directly, which starts Uvicorn and the background thread
-CMD ["python", "server/app.py"]
+CMD ["python", "-m", "server.app"]
