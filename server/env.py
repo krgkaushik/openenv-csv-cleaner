@@ -51,7 +51,7 @@ class CSVCleanerEnv:
 
     def step(self, action: CSVAction) -> Tuple[CSVObservation, float, bool, Dict[str, Any]]:
         self.current_step += 1
-        reward = 0.0  # Initialized as float
+        reward = 0.0
         done = False
         feedback = ""
 
@@ -60,18 +60,17 @@ class CSVCleanerEnv:
             if action.operation == "drop_na":
                 self.df = self.df.dropna(subset=[action.column] if action.column else None)
                 feedback = "Dropped missing values."
-            
+                
             elif action.operation == "format_date" and action.column:
                 self.df[action.column] = pd.to_datetime(self.df[action.column], errors='coerce').dt.strftime('%Y-%m-%d')
                 feedback = "Formatted dates."
-            
+                
             elif action.operation == "fix_typo" and action.column:
                 self.df[action.column] = self.df[action.column].replace(action.target_value, action.new_value)
                 feedback = f"Fixed typo in {action.column}."
-
+                
             elif action.operation == "submit":
                 done = True
-                # -- THE GRADER LOGIC (Strict Floats) --
                 if self.task_name == "easy":
                     reward = 1.0 if self.df.isnull().sum().sum() == 0 else 0.0
                 elif self.task_name == "medium":
@@ -87,16 +86,14 @@ class CSVCleanerEnv:
             else:
                 feedback = "Invalid operation."
                 reward = -0.1
-
         except Exception as e:
             feedback = f"Error: {str(e)}"
             reward = -0.5
 
         if self.current_step >= self.max_steps:
             done = True
-        
+            
         obs = self.state()
         obs.feedback = feedback
         
-        # Ensure 'info' is a dict and types are strict for the grader
         return obs, float(reward), bool(done), {"step": int(self.current_step)}
